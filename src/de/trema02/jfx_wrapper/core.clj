@@ -60,7 +60,7 @@
      (let [val (:fxml-name mp)]
        (or (nil? val) (and (string? val) (.. app getClass (getResource val)))))
      (do (reset! result :end-fn) true)
-     (let [val (:end-fn mp)]
+     #_(let [val (:end-fn mp)] ; cannot test handler
        (or (nil? val) (fn? val)))
      (do (reset! result :ok) true))
     @result))
@@ -81,7 +81,7 @@
     :y-size (str ":y-size must be a positive integer.")
     :image-name (str ":image-name must be nil or a valid resource.")
     :fxml-name (str ":fxml-name must be nil or a valid resource.")
-    :end-fn (str ":end-fn must be nil or a function.")
+    :end-fn (str ":end-fn must be a handler.")
     :ok (str "OK.")))
 
 (defn set-app-data [app mp]
@@ -126,20 +126,20 @@
           (reset! image (Image. img))
           (doto (.getIcons @primary-stage) (.add @image)))
         nil))
-    (let [cf (:config-fn @data)]
-      (if cf
-        (cf @gui-root @mc)
-        nil))
     (let [scene (Scene. @gui-root (:x-size @data) (:y-size @data))
           stage (Stage.)]
       (if @style-sheet
-        (.. @scene getStylesheets (add @style-sheet))
+        (.. scene getStylesheets (add @style-sheet))
         nil)
       (.setTitle stage (:title @data))
       (doto stage
         (.setScene scene)
-        (.setOnCloseRequest (or (:end-fn @data) close-handler))
-        (.show)))))
+        (.setOnCloseRequest (or (:end-fn @data) close-handler)))
+      (let [cf (:config-fn @data)]
+        (if cf
+          (cf stage @mc)
+          nil))
+      (.show stage))))
 
 (defn -start [this stage]
   (reset! primary-stage stage)
