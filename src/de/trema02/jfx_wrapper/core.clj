@@ -134,7 +134,7 @@
       (.setTitle stage (:title @data))
       (doto stage
         (.setScene scene)
-        (.setOnCloseRequest (or (:end-fn @data) close-handler)))
+        (.setOnCloseRequest (or (:end-fn @data) close-handler))Works with )
       (let [cf (:config-fn @data)]
         (if cf
           (cf stage @mc)
