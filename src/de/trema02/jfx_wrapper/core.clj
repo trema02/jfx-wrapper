@@ -19,6 +19,7 @@
 (def mc (atom nil))
 (def gui-root (atom nil))
 (def gui (atom nil))
+(def application (atom nil))
 (def style-sheet (atom nil))
 (def image (atom nil))
 (def ^{:private false} primary-stage (atom nil))
@@ -88,7 +89,9 @@
   (let [result-key (app-data-valid? app mp)
         ok (= result-key :ok)]
     (if ok
-      (reset! data mp)
+      (do
+        (reset! application app)
+        (reset! data mp))
       (throw (Exception. (str "jfx_wrapper.core/set-app-data: " (explain-app-data-error app mp result-key)))))))
 
 (defn get-app-data []
@@ -120,26 +123,31 @@
       (if css
         (reset! style-sheet (.. @gui getClass (getResource css) toExternalForm))
         nil))
-    (let [img (:image-name @data)]
-      (if img
-        (do
-          (reset! image (Image. img))
-          (doto (.getIcons @primary-stage) (.add @image)))
-        nil))
     (let [scene (Scene. @gui-root (:x-size @data) (:y-size @data))
           stage (Stage.)]
+      (let [img (:image-name @data)]
+        (if img
+          (do
+            (reset! image (Image. (.. @application getClass (getResourceAsStream img))))
+            (doto (.getIcons stage) (.add @image)))
+          nil))
       (if @style-sheet
         (.. scene getStylesheets (add @style-sheet))
         nil)
       (.setTitle stage (:title @data))
       (doto stage
         (.setScene scene)
-        (.setOnCloseRequest (or (:end-fn @data) close-handler))Works with )
+        (.setOnCloseRequest (or (:end-fn @data) close-handler)))
       (let [cf (:config-fn @data)]
         (if cf
           (cf stage @mc)
           nil))
       (.show stage))))
+
+(defn setup [data]
+  (let [gui (de.trema02.jfx_wrapper.core.GUI.)]
+    (set-app-data gui data)
+    (.entry gui)))
 
 (defn -start [this stage]
   (reset! primary-stage stage)
