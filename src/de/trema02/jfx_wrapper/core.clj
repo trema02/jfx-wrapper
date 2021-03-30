@@ -162,7 +162,8 @@
         (if cf
           (cf stage @mc)
           nil))
-      (.show stage))))
+      (.show stage)
+      stage)))
 
 (defn setup [data]
   (let [gui (de.trema02.jfx_wrapper.core.GUI.)]
