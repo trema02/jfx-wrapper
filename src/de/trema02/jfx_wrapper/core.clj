@@ -25,7 +25,8 @@
            [javafx.fxml FXMLLoader]
            [javafx.event EventHandler]
            [javafx.scene Scene]
-           [javafx.scene.image Image])
+           [javafx.scene.image Image]
+           [javafx.beans.value ChangeListener])
   (:require [clojure.set :as st]))
 
 (gen-class
@@ -120,6 +121,10 @@
 (defn event-handler [f & args]
   (proxy [EventHandler] []
     (handle [event] (apply f event args))))
+
+(defn change-listener [f & args]
+  (proxy [ChangeListener] []
+    (changed [observable old-value new-value] (apply f observable old-value new-value args))))
 
 (declare start-stage)
 (def close-handler (event-handler (fn [_]
